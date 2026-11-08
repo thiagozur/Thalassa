@@ -37,3 +37,20 @@ class OceanProfile:
         temp = self.get_temperature(d)
         sal = self.get_salinity(d)
         return c_mackenzie(d, sal, temp)
+    
+    def _validate_interval(self, h):
+        if not np.isfinite(h):
+            raise ValueError("Invalid interval")
+        if h <= 0:
+            raise ValueError("Interval must be positive")
+        if h > self.depth[-1] - self.depth[0]:
+            raise ValueError("Interval cannot be larger than the full profile depth")
+
+    def get_sound_speed_gradient(self, d, h = 0.5):
+        self._validate_depth(d)
+        self._validate_interval(h)
+        if d - h < self.depth[0]:
+            return (self.get_sound_speed(d + h) - self.get_sound_speed(d)) / h
+        elif d + h > self.depth[-1]:
+            return (self.get_sound_speed(d) - self.get_sound_speed(d - h)) / h
+        return (self.get_sound_speed(d + h) - self.get_sound_speed(d - h)) / (2 * h)
